@@ -5,7 +5,7 @@ import {
 } from '../services/auth.service.js';
 import { formatValidationError } from '../utils/format.js';
 import { jwttoken } from '../utils/jwt.js';
-import { signupSchema } from '../validations/auth.validation.js';
+import { signupSchema, signinSchema } from '../validations/auth.validation.js';
 import { cookies } from '../utils/cookies.js';
 import { logger } from '../config/logger.js';
 
@@ -51,16 +51,27 @@ export const signup = async (req, res, next) => {
 
 export const signin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const validationResult = signinSchema.safeParse(req.body);
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    if (!validationResult.success) {
+      logger.warn(
+        `Signin validation failed: ${JSON.stringify(validationResult.error.errors)}`
+      );
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: formatValidationError(validationResult.error),
+      });
     }
+
+    const { email, password } = validationResult.data;
+
+    logger.info(`Signin attempt for email: ${email}`);
 
     const user = await getUserByEmail(email);
     const isPasswordValid = await comparePassword(password, user.password);
 
     if (!isPasswordValid) {
+      logger.warn(`Signin failed - Invalid password for email: ${email}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -70,6 +81,10 @@ export const signin = async (req, res) => {
       role: user.role,
     });
 
+    cookies.set(res, 'token', token);
+
+    logger.info(`User signed in successfully: ${email}`);
+
     res.status(200).json({
       message: 'User signed in successfully',
       user: {
@@ -78,7 +93,6 @@ export const signin = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      token,
     });
   } catch (error) {
     logger.error(`Signin error: ${error.message}`);
@@ -88,7 +102,11 @@ export const signin = async (req, res) => {
 
 export const signout = async (req, res) => {
   try {
-    // Token invalidation can be handled via blacklist or by client-side token deletion
+    const user = req.user;
+    cookies.clear(res, 'token');
+
+    logger.info(`User signed out successfully: ${user?.email || 'unknown'}`);
+
     res.status(200).json({ message: 'User signed out successfully' });
   } catch (error) {
     logger.error(`Signout error: ${error.message}`);
