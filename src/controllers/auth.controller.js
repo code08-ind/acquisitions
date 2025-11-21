@@ -71,7 +71,7 @@ export const signin = async (req, res) => {
     const isPasswordValid = await comparePassword(password, user.password);
 
     if (!isPasswordValid) {
-      logger.warn(`Signin failed - Invalid password for email: ${email}`);
+      logger.error(`Signin failed - Invalid password for email: ${email}`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
