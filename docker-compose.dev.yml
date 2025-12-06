@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Neon Local proxy service - creates ephemeral database branches
+  db:
+    image: neondatabase/neon_local:latest
+    container_name: acquisitions-neon-local
+    ports:
+      - '5432:5432'
+    env_file:
+      - .env.development
+    volumes:
+      # Store Neon Local metadata (contains branch info)
+      - neon_local_data:/var/lib/neon_local
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "neon", "-h", "localhost", "-p", "5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    container_name: acquisitions-app-dev
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.development
+    volumes:
+      # Mount source code for hot-reload in development
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    command: npm run dev
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  neon_local_data:
+    driver: local
