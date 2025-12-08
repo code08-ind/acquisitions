@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import authRouter from './routes/auth.routes.js';
 import securityMiddleware from './middleware/security.middleware.js';
+import userRouter from './routes/users.routes.js';
 
 const app = express();
 
@@ -43,5 +44,6 @@ app.get('/api', (req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
 
 export default app;

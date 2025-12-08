@@ -9,7 +9,7 @@ import { signupSchema, signinSchema } from '../validations/auth.validation.js';
 import { cookies } from '../utils/cookies.js';
 import { logger } from '../config/logger.js';
 
-export const signup = async (req, res, next) => {
+export const signup = async (req, res) => {
   try {
     const validationResult = signupSchema.safeParse(req.body);
 

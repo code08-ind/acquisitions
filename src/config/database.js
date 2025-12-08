@@ -2,7 +2,6 @@ import 'dotenv/config';
 
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import ws from 'ws';
 
 // Configure Neon for local development with Neon Local
 if (process.env.NODE_ENV === 'development') {
