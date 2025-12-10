@@ -82,4 +82,14 @@ npm run lint:fix
 npm run format
 ```
 
-Start From 04:42:06 Mins.
+## Testing
+
+We will initialize the jest in our repo by running the following command:
+
+```bash
+npx init jest@latest
+```
+
+After running all the tests with the test command, we will get the test coverage report as well for all the web application folders.
+
+Start From 04:54:06 Mins.
